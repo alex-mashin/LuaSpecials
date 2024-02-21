@@ -1,7 +1,8 @@
 This _[MediaWiki](https://mediawiki.org)_ extension gives access to query special pages from Lua.
 
 # Requirements
-The extension requires _[Scribunto](https://mediawiki.org/wiki/extension:Scribunto)_.
+This extension requires _[MediaWiki](https://mediawiki.org)_
+and _[Scribunto](https://mediawiki.org/wiki/extension:Scribunto)_.
 
 # Installation and configuration
 To install,
@@ -17,7 +18,7 @@ wfLoadExtension( 'LuaSpecials' );
 
 The only configuration setting is `$wgLuaSpecialsDefaultLimit`,
 regulating, how much rows are fetched from the special page, if the limit
-is not specified in Lua module. Its default value id 50.
+is not specified in Lua module. Its default value is 50.
 To remove the limit, set
 ```php
 $wgLuaSpecialsDefaultLimit = false;
@@ -25,9 +26,9 @@ $wgLuaSpecialsDefaultLimit = false;
 
 # Usage
 ```lua
-mw.ext.luaSpecials.longpages( 0, 100) -- fist 100 rows.
+mw.ext.luaSpecials.longpages( 0, 100) -- fist 100 rows of Special:Longpages.
 mw.ext.luaSpecials.longpages( 100, 100) -- next 100 rows.
-mw.ext.luaSpecials.longpages() -- fist $wgLuaSpecialsDefaultLimit rows.
+mw.ext.luaSpecials.longpages() -- first $wgLuaSpecialsDefaultLimit rows.
 
 -- Get all available special pages:
 local pages = {}
