@@ -8,7 +8,7 @@ and _[Scribunto](https://mediawiki.org/wiki/extension:Scribunto)_.
 To install,
 ```bash
 cd extensions
-git clone https://github.com/alex-mashin/LuaSpecials
+git clone https://github.com/alex-mashin/LuaSpecials.git
 ```
 
 To enable the extension, add to `LocalSettings.php`:
