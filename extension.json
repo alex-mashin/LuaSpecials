@@ -1,0 +1,36 @@
+{
+	"name": "LuaSpecials",
+	"author": [
+		"Alexander Mashin"
+	],
+	"version": "0.1",
+	"url": "https://github.com/alex-mashin/LuaSpecials",
+	"descriptionmsg": "luaspecials-desc",
+	"license-name": "GPL-2.0-or-later",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.35.0",
+		"extensions": {
+			"Scribunto": "*"
+		}
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\LuaSpecials\\": "src/"
+	},
+	"configPrefix": "wgLuaSpecials",
+	"config": {
+		"DefaultLimit": {
+			"descriptionmsg": "luaspecials-limit",
+			"value": 50
+		}
+	},
+	"Hooks": {
+		"ScribuntoExternalLibraries": "MediaWiki\\Extension\\LuaSpecials\\Hooks::onScribuntoExternalLibraries"
+	},
+	"MessagesDirs": {
+		"LuaSpecials": [
+			"i18n"
+		]
+	},
+	"manifest_version": 2
+}

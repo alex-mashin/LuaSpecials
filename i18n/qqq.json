@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alexander Mashin"
+		]
+	},
+	"luaspecials-desc": "{{desc|name=LuaSpecials|url=https://github.com/alex-mashin/LuaSpecials}}",
+	"luaspecials-limit": "Message describing the $wgLuaSpacialsDefaultLimit configuration setting"
+}

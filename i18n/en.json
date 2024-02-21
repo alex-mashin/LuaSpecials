@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Alexander Mashin"
+		]
+	},
+	"luaspecials-desc": "This extension makes special query pages available in Lua as mw.ext.luaSpecials.(specialPageName)",
+	"luaspecials-limit": "The default row limit to be passed to special pages from Lua. By default, 50. Set to false to remove limit."
+}
