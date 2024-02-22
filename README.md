@@ -26,9 +26,9 @@ $wgLuaSpecialsDefaultLimit = false;
 
 # Usage
 ```lua
-mw.ext.luaSpecials.longpages( 0, 100) -- fist 100 rows of Special:Longpages.
-mw.ext.luaSpecials.longpages( 100, 100) -- next 100 rows.
-mw.ext.luaSpecials.longpages() -- first $wgLuaSpecialsDefaultLimit rows.
+local long1_100 = mw.ext.luaSpecials.longpages (0, 100) -- fist 100 rows of Special:Longpages.
+local long101_200 = mw.ext.luaSpecials.longpages (100, 100) -- next 100 rows.
+local long = mw.ext.luaSpecials.longpages () -- first $wgLuaSpecialsDefaultLimit rows.
 
 -- Get all available special pages:
 local pages = {}
