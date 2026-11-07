@@ -181,9 +181,19 @@ call, not a defect.
 ## Verification of the fixes
 
 - `src/ScribuntoLibrary.php`, `src/Hooks.php` — PHP 7+ syntax verified by AST
-  parse (glensc/php-parser 3.7.0; no PHP runtime on the review machine, so
-  `composer test` could not run here).
+  parse (glensc/php-parser 3.7.0) before a PHP runtime was available, then
+  re-verified by the real toolchain (below).
 - `src/mw.ext.luaSpecials.lua` — Lua 5.1 syntax verified (luaparse 0.3.1;
   Scribunto targets 5.1).
-- `npm ci && npm test` (eslint, stylelint, banana) run after the changes —
-  see the session log for the result.
+- `npm ci && npm test` (eslint, stylelint, banana) — passes.
+- `composer install` + `composer test` on PHP 8.5.12, Composer 2.10.3 with
+  the pinned tools (mediawiki-codesniffer 38.0.0, parallel-lint 1.2.0,
+  minus-x 1.1.0): parallel-lint clean, phpcs clean (3 files, 0 findings),
+  minus-x clean after clearing a stray executable bit on the local
+  (gitignored) `composer.lock`.
+- Environment note, not a repo defect: the harness keeps a 1.6G cache in
+  `.opencode/` at the repo root with its own nested `node_modules`; phpcs's
+  top-level-only excludes don't cover it, so a full-tree phpcs run exhausts
+  its 128M default memory limit on minified JS there. Run
+  `phpcs --ignore=*/.opencode/*` (or raise `-d memory_limit`) in such
+  environments; committed `composer test` is unaffected on normal checkouts.
