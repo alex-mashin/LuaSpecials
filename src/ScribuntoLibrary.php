@@ -3,10 +3,25 @@ namespace MediaWiki\Extension\LuaSpecials;
 
 use MediaWiki\MediaWikiServices;
 
+/**
+ * Scribunto library exposing query special pages as mw.ext.luaSpecials.*.
+ *
+ * Works with Scribunto 1.35 (global Scribunto_LuaLibraryBase) through
+ * Scribunto master (namespaced LibraryBase, alias removed): the alias is
+ * rebuilt below if Scribunto no longer provides it. The autoload-enabled
+ * class_exists() both loads the global class where Scribunto maps it
+ * (AutoloadClasses, 1.35-1.44) and resolves the namespaced class through
+ * AutoloadNamespaces where only it exists (master).
+ */
+if ( !class_exists( \Scribunto_LuaLibraryBase::class ) ) {
+	class_alias(
+		'MediaWiki\Extension\Scribunto\Engines\LuaCommon\LibraryBase',
+		'Scribunto_LuaLibraryBase'
+	);
+}
+
 class ScribuntoLibrary extends \Scribunto_LuaLibraryBase {
-	/** @const string EXT The extension name. */
-	private const EXT = 'LuaSpecials';
-	/** @var int Default query limit. */
+	/** @var int|false Default query limit. */
 	private static $limit;
 
 	/**
@@ -14,7 +29,7 @@ class ScribuntoLibrary extends \Scribunto_LuaLibraryBase {
 	 */
 	public function register() {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
-		self::$limit = $config->get( self::EXT . 'DefaultLimit' );
+		self::$limit = $config->get( Hooks::EXT . 'DefaultLimit' );
 
 		$functions = [
 			'userGroups' => __CLASS__ . '::userGroups'
@@ -23,14 +38,36 @@ class ScribuntoLibrary extends \Scribunto_LuaLibraryBase {
 		// Namespace exists since MW 1.41:
 		$qp = class_exists( 'QueryPage' ) ? 'QueryPage' : '\MediaWiki\SpecialPage\QueryPage';
 		$disabled = $qp::getDisabledQueryPages( $config );
-		foreach ( $qp::getPages() as [ $class, $special ] ) {
+		// SpecialPageFactory (since MW 1.35) constructs special pages with
+		// their services, required since MW 1.42 for many query pages.
+		$factory = MediaWikiServices::getInstance()->getSpecialPageFactory();
+		foreach ( $qp::getPages() as [ , $special ] ) {
 			if ( isset( $disabled[$special] ) ) {
+				// Updating is disabled in $wgDisableQueryPageUpdate.
+				continue;
+			}
+			try {
+				$page = $factory->getPage( $special );
+			} catch ( \Throwable $e ) {
+				continue; // Not constructable, e.g. a missing dependency.
+			}
+			if ( !$page instanceof $qp || $page->getRestriction() !== '' ) {
+				// Lua modules run before any specific reader is known, so
+				// per-user access control is impossible: exclude pages that
+				// require a permission (Special:Unwatchedpages, most
+				// notably), as well as pages that are no QueryPages at all.
 				continue;
 			}
 			$functions[lcfirst( $special )] =
-			static function ( $offset = false, $limit = false, ...$args ) use ( $special, $class ): array {
-				$page = new $class( $special );
-				$result = $page->doQuery( $offset ?? false, $limit ?: self::$limit );
+			function ( $offset = false, $limit = false, ...$args ) use ( $page ): array {
+				// Bound the number of DB-backed queries per parse, like
+				// other expensive Scribunto libraries do.
+				$this->incrementExpensiveFunctionCount();
+				// Lua API: limit = 0 means "no limit"; nil or false mean
+				// $wgLuaSpecialsDefaultLimit (which may itself be false,
+				// i.e. no limit).
+				$effectiveLimit = $limit === 0 ? false : ( $limit ?: self::$limit );
+				$result = $page->doQuery( $offset ?? false, $effectiveLimit );
 				$num = $result->numRows();
 				$rows = [];
 				for ( $i = 0; $i < $num && $row = $result->fetchRow(); $i++ ) {
@@ -38,24 +75,31 @@ class ScribuntoLibrary extends \Scribunto_LuaLibraryBase {
 					unset( $row['qc_type'] ); // further reduce memory load.
 					$rows[$i + 1] = $row;
 				}
-				return [ $rows ]; // Scribunto will unwrap it.
+				// Cached (miser mode) results may be stale and are capped
+				// by $wgQueryCacheLimit: return their timestamp as a third
+				// value, null for fresh results. Scribunto unwraps the array.
+				$cached = $page->isCached() ? $page->getCachedTimestamp() : null;
+				return [ $rows, $num, $cached ?: null ];
 			};
 		}
-		$this->getEngine()->registerInterface( __DIR__ . '/mw.ext.' . lcfirst( self::EXT ) . '.lua', $functions, [] );
+		$this->getEngine()->registerInterface( __DIR__ . '/mw.ext.' . lcfirst( Hooks::EXT ) . '.lua', $functions, [] );
 	}
 
 	/**
-	 * @param any $_ Ignored.
-	 * @param any $__ Ignored.
-	 * @return array[]
+	 * List all user groups defined on the wiki.
+	 *
+	 * @param mixed ...$args Ignored; the generic Lua wrapper passes offset
+	 *  and limit placeholders to every function.
+	 * @return array[] Rows, number of rows and the cache timestamp
+	 *  (always null here), to match the shape of the query page functions.
 	 */
-	public static function userGroups( $_, $__ ): array {
+	public static function userGroups( ...$args ): array {
+		$zeroBased = MediaWikiServices::getInstance()->getUserGroupManager()->listAllGroups();
 		// Zero-based array to one-based:
-		$based_0 = MediaWikiServices::getInstance()->getUserGroupManager()->listAllGroups();
-		$based_1 = [];
-		foreach ( $based_0 as $key => $group ) {
-			$based_1[$key + 1] = $group;
+		$oneBased = [];
+		foreach ( $zeroBased as $index => $group ) {
+			$oneBased[$index + 1] = $group;
 		}
-		return [ $based_1 ];
+		return [ $oneBased, count( $oneBased ), null ];
 	}
 }

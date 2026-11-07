@@ -3,7 +3,7 @@ namespace MediaWiki\Extension\LuaSpecials;
 
 class Hooks {
 	/** @const string EXT The extension name. */
-	private const EXT = 'LuaSpecials';
+	public const EXT = 'LuaSpecials';
 
 	/**
 	 * @param string $engine

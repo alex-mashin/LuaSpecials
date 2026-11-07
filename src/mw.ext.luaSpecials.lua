@@ -1,8 +1,6 @@
 --[[
 	Registers methods that can be accessed through the Scribunto extension
 
-	@since 2.2
-
 	@licence GNU GPL v2+
 	@author Alexander Mashin
 ]]
@@ -27,13 +25,13 @@ function external.setupInterface()
 	mw.ext = mw.ext or {}
 
 	-- Export data retrieval functions from php (ScribuntoLibrary).
-	for name, func in pairs( php ) do
-		external[name] = function( offset, limit, ... )
+	for funcName, func in pairs( php ) do
+		external[funcName] = function( offset, limit, ... )
 			return func( offset, limit, ... )
 		end
 	end
 
-	mw.ext [name] = external
+	mw.ext[name] = external
 	package.loaded['mw.ext.' .. name] = external
 end
 
