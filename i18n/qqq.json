@@ -5,5 +5,5 @@
 		]
 	},
 	"luaspecials-desc": "{{desc|name=LuaSpecials|url=https://github.com/alex-mashin/LuaSpecials}}",
-	"luaspecials-limit": "Message describing the $wgLuaSpacialsDefaultLimit configuration setting"
+	"luaspecials-limit": "Message describing the $wgLuaSpecialsDefaultLimit configuration setting"
 }

@@ -119,6 +119,43 @@ always forwards two placeholders; direct PHP callers had to pass dummies, and
 now also returns the same 3-value shape (rows, count, `null` timestamp) as
 the query page functions.
 
+### D7 (high) — Wrong `extension.json` config prefix key; config option never registered — [FIXED]
+
+`extension.json` used `"configPrefix": "wgLuaSpecials"`, but the
+manifest_version 2 schema defines the key as **`config_prefix`** (snake_case;
+verified in `docs/extension.schema.v2.json` and
+`ExtensionProcessor::extractConfig2()`, which reads `$info['config_prefix']`,
+on REL1_35 through master). Unknown manifest keys are silently ignored, so
+the option was exported under the default prefix as `$wgDefaultLimit` —
+`$wgLuaSpecialsDefaultLimit` never existed — and the first parse that
+registered the Scribunto library threw
+`GlobalVarConfig::get: undefined option` (a runtime 500 on every wiki page
+using Lua modules, since `register()` runs on each engine init).
+
+The broken manifest shipped with the extension, so `GlobalVarConfig` carried
+the default `'wg'` prefix and the original code correctly fetched
+`$config->get( Hooks::EXT . 'DefaultLimit' )` — `get()` takes the
+*unprefixed* name and prepends the config prefix itself
+(`GlobalVarConfig::get()` returns `$GLOBALS[$this->prefix . $name]`). A later
+local "fix" that changed this to `get( 'wg' . Hooks::EXT . 'DefaultLimit' )`
+actually looked up `$GLOBALS['wgwgLuaSpecialsDefaultLimit']`, replacing a
+silent wrong-option bug with the visible `ConfigException` reported on
+Special:RecentChanges.
+
+**Fix applied:** `"configPrefix"` → `"config_prefix"` in `extension.json`
+(`$wgLuaSpecialsDefaultLimit`, default 50, now actually registered; works on
+1.35–master since `extractConfig2()` has read `config_prefix` since 1.35) and
+the getter reverted to the unprefixed
+`$config->get( Hooks::EXT . 'DefaultLimit' )` with a comment explaining why
+the name is unprefixed. Also fixed the `$wgLuaSpacialsDefaultLimit` typo in
+`i18n/qqq.json` and the `configPrefix` spelling in AGENTS.md.
+
+**Note for wikis already running the broken release:** the export collision
+means the broken version wrote `$wgDefaultLimit`, so sites that "worked
+around" the crash by setting `$wgLuaSpecialsDefaultLimit` manually in
+LocalSettings.php need no change — the corrected manifest picks that global
+up as intended.
+
 ---
 
 ## Simplifications

@@ -17,7 +17,7 @@
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\LuaSpecials\\": "src/"
 	},
-	"configPrefix": "wgLuaSpecials",
+	"config_prefix": "wgLuaSpecials",
 	"config": {
 		"DefaultLimit": {
 			"descriptionmsg": "luaspecials-limit",

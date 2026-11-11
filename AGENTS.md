@@ -82,7 +82,7 @@ Follow the conventions already present in the code; don't mix styles.
   constants are `public const` on `Hooks` (`Hooks::EXT`, the single
   definition of the extension name — do not duplicate it in other classes).
 - Configuration comes from `extension.json` `config` with
-  `configPrefix: wgLuaSpecials` (→ `$wgLuaSpecialsDefaultLimit`, default 50),
+  `config_prefix: wgLuaSpecials` (→ `$wgLuaSpecialsDefaultLimit`, default 50),
   read via `MediaWikiServices::getInstance()->getMainConfig()`.
 - Cross-version compatibility pattern used in this repo: pick the class by
   availability — `class_exists( 'QueryPage' ) ? 'QueryPage' :

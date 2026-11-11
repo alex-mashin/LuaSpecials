@@ -29,6 +29,8 @@ class ScribuntoLibrary extends \Scribunto_LuaLibraryBase {
 	 */
 	public function register() {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
+		// GlobalVarConfig::get() takes the unprefixed name and prepends
+		// 'wg' itself: 'LuaSpecialsDefaultLimit' → $wgLuaSpecialsDefaultLimit.
 		self::$limit = $config->get( Hooks::EXT . 'DefaultLimit' );
 
 		$functions = [
