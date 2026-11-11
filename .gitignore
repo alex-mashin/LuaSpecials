@@ -2,3 +2,8 @@
 /vendor
 /node_modules
 .eslintcache
+.opencode
+node_modules
+.npm
+.omo
+.bun
